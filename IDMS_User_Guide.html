@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDMS Panel — User Guide</title>
+<style>
+  :root{
+    --navy:#0B2545; --navy-deep:#071A33; --blue:#2E6FD9; --blue-soft:#EAF1FD; --red:#E0483D;
+    --ink:#1E2733; --muted:#5B6672; --line:#E3E8EF;
+    --paper:#FFFFFF; --canvas:#F5F7FA; --code-bg:#0F1E33; --code-ink:#D9E4F5;
+    --ok:#1F8A5F; --ok-bg:#E9F7F0; --warn:#B5750B; --warn-bg:#FBF0DC; --err:#C23B32; --err-bg:#FBEAE8;
+    --shadow: 0 1px 2px rgba(11,37,69,.06), 0 8px 24px -12px rgba(11,37,69,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#E7ECF3; --muted:#9AA7B6; --line:#233248;
+      --paper:#111A2B; --canvas:#0B1220; --blue-soft:#132A4D;
+      --ok-bg:#0F2B21; --warn-bg:#332508; --err-bg:#331714;
+      --shadow: 0 1px 0 rgba(255,255,255,.04), 0 20px 40px -20px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#E7ECF3; --muted:#9AA7B6; --line:#233248;
+    --paper:#111A2B; --canvas:#0B1220; --blue-soft:#132A4D;
+    --ok-bg:#0F2B21; --warn-bg:#332508; --err-bg:#331714;
+    --shadow: 0 1px 0 rgba(255,255,255,.04), 0 20px 40px -20px rgba(0,0,0,.7);
+  }
+  :root[data-theme="light"]{
+    --ink:#1E2733; --muted:#5B6672; --line:#E3E8EF;
+    --paper:#FFFFFF; --canvas:#F5F7FA; --blue-soft:#EAF1FD;
+    --ok-bg:#E9F7F0; --warn-bg:#FBF0DC; --err-bg:#FBEAE8;
+    --shadow: 0 1px 2px rgba(11,37,69,.06), 0 8px 24px -12px rgba(11,37,69,.18);
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:var(--canvas); color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:15.5px; line-height:1.6;
+  }
+  a{ color:var(--blue); }
+  code, .kv{
+    font-family:"Cascadia Code","Consolas","SFMono-Regular",Menlo,monospace;
+    font-size:.92em;
+  }
+
+  /* ---------- layout ---------- */
+  .shell{ display:flex; min-height:100vh; }
+  nav.toc{
+    position:sticky; top:0; align-self:flex-start; height:100vh; overflow-y:auto;
+    width:272px; flex:0 0 272px; padding:28px 18px 40px;
+    background:var(--paper); border-right:1px solid var(--line);
+  }
+  .toc-brand{ display:flex; align-items:center; gap:10px; padding:0 8px 20px; }
+  .toc-mark{ width:26px; height:26px; flex:0 0 auto; }
+  .toc-brand-text{ font-weight:700; font-size:14px; letter-spacing:.2px; }
+  .toc-brand-text small{ display:block; font-weight:500; color:var(--muted); font-size:11px; letter-spacing:.5px; text-transform:uppercase; margin-top:1px; }
+  .toc-group{ margin:0 0 4px; }
+  .toc-group-label{ font-size:10.5px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--muted); padding:14px 8px 6px; }
+  .toc a{
+    display:block; padding:7px 8px; border-radius:7px; font-size:13.5px;
+    color:var(--ink); text-decoration:none; opacity:.78;
+  }
+  .toc a:hover{ background:var(--blue-soft); opacity:1; }
+  .toc a.active{ background:var(--blue-soft); color:var(--blue); opacity:1; font-weight:600; }
+
+  main{ flex:1 1 auto; min-width:0; }
+  .content{ max-width:760px; margin:0 auto; padding:52px 40px 120px; }
+
+  .hero{ margin-bottom:44px; }
+  .hero .eyebrow{ font-size:11.5px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:var(--blue); margin-bottom:10px; }
+  .hero h1{ margin:0 0 12px; font-size:clamp(28px,4vw,36px); font-weight:800; letter-spacing:-.01em; text-wrap:balance; }
+  .hero p{ margin:0; color:var(--muted); font-size:16px; max-width:60ch; }
+
+  section{ margin:0 0 56px; scroll-margin-top:24px; }
+  section h2{
+    font-size:22px; font-weight:800; margin:0 0 6px; padding-top:6px;
+    display:flex; align-items:baseline; gap:10px;
+  }
+  section h2 .num{ color:var(--blue); font-variant-numeric:tabular-nums; font-size:14px; font-weight:700; }
+  section .lede{ color:var(--muted); margin:0 0 20px; font-size:15px; }
+  h3{ font-size:16.5px; font-weight:700; margin:28px 0 10px; }
+  h4{ font-size:14.5px; font-weight:700; margin:20px 0 8px; color:var(--ink); }
+  p{ margin:0 0 14px; }
+  ul, ol{ margin:0 0 14px; padding-left:22px; }
+  li{ margin:0 0 6px; }
+  li::marker{ color:var(--muted); }
+
+  .panel-map{
+    display:grid; grid-template-columns:1fr; gap:1px; background:var(--line);
+    border:1px solid var(--line); border-radius:10px; overflow:hidden; margin:18px 0 22px;
+    box-shadow:var(--shadow);
+  }
+  .panel-row{ background:var(--paper); padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
+  .panel-row .left{ color:var(--muted); font-size:13px; }
+  .panel-row .right{ font-weight:700; font-size:13px; color:var(--blue); white-space:nowrap; }
+  .panel-row.head{ background:var(--navy); color:#fff; font-weight:700; font-size:12.5px; letter-spacing:.4px; text-transform:uppercase; }
+  .panel-row.head .left{ color:#AFC3E0; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  .table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:10px; margin:14px 0 22px; box-shadow:var(--shadow); }
+  th, td{ text-align:left; padding:9px 14px; border-bottom:1px solid var(--line); vertical-align:top; }
+  thead th{ background:var(--navy); color:#fff; font-weight:700; font-size:11.5px; letter-spacing:.4px; text-transform:uppercase; border-bottom:none; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:nth-child(even){ background:color-mix(in srgb, var(--canvas) 55%, transparent); }
+  td code{ white-space:nowrap; }
+
+  .kv-block{
+    background:var(--code-bg); color:var(--code-ink); border-radius:10px;
+    padding:16px 18px; margin:14px 0 22px; overflow-x:auto; box-shadow:var(--shadow);
+  }
+  .kv-block pre{ margin:0; font-family:"Cascadia Code","Consolas",Menlo,monospace; font-size:13px; line-height:1.65; white-space:pre; }
+  .kv-block .c{ color:#7C93B8; }
+  .kv-block .k{ color:#7FC6FF; }
+  .kv-block .v{ color:#B7F0C0; }
+
+  .callout{ display:flex; gap:12px; padding:14px 16px; border-radius:10px; margin:18px 0; border:1px solid; }
+  .callout .icon{ flex:0 0 auto; font-size:16px; line-height:1.5; }
+  .callout .body b{ display:block; margin-bottom:2px; font-size:13px; letter-spacing:.2px; text-transform:uppercase; }
+  .callout p{ margin:0; font-size:14px; }
+  .callout.tip{ background:var(--blue-soft); border-color:color-mix(in srgb, var(--blue) 35%, transparent); }
+  .callout.tip b{ color:var(--blue); }
+  .callout.warn{ background:var(--warn-bg); border-color:color-mix(in srgb, var(--warn) 35%, transparent); }
+  .callout.warn b{ color:var(--warn); }
+  .callout.err{ background:var(--err-bg); border-color:color-mix(in srgb, var(--err) 35%, transparent); }
+  .callout.err b{ color:var(--err); }
+  .callout.ok{ background:var(--ok-bg); border-color:color-mix(in srgb, var(--ok) 35%, transparent); }
+  .callout.ok b{ color:var(--ok); }
+
+  .steps{ counter-reset:step; list-style:none; padding:0; margin:16px 0 22px; }
+  .steps li{
+    counter-increment:step; position:relative; padding:2px 0 18px 40px; margin:0;
+    border-left:2px solid var(--line); margin-left:14px;
+  }
+  .steps li:last-child{ border-color:transparent; padding-bottom:0; }
+  .steps li::before{
+    content:counter(step); position:absolute; left:-15px; top:-1px;
+    width:28px; height:28px; border-radius:50%; background:var(--navy); color:#fff;
+    font-size:12.5px; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .steps li b{ display:block; margin-bottom:3px; }
+
+  .btnlabel{
+    display:inline-block; font-weight:700; font-size:12px; letter-spacing:.3px;
+    color:var(--blue); background:var(--blue-soft); border-radius:6px; padding:2px 8px;
+  }
+  .field{ font-weight:700; }
+
+  .badge-row{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 22px; }
+  .badge{ font-size:12px; font-weight:700; padding:5px 11px; border-radius:999px; background:var(--blue-soft); color:var(--blue); }
+
+  .top-link{ display:inline-block; margin-top:6px; font-size:12.5px; color:var(--muted); text-decoration:none; }
+  .top-link:hover{ color:var(--blue); }
+
+  hr.sep{ border:none; border-top:1px solid var(--line); margin:40px 0; }
+
+  @media (max-width: 880px){
+    nav.toc{ display:none; }
+    .content{ padding:36px 20px 100px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <nav class="toc" id="toc">
+    <div class="toc-brand">
+      <svg class="toc-mark" viewBox="0 0 100 88" aria-hidden="true">
+        <polygon points="30,4 56,84 4,84" fill="#E0483D"/>
+        <polygon points="62,20 84,84 40,84" fill="#0B2545"/>
+      </svg>
+      <div class="toc-brand-text">A.M. Motors<small>IDMS Panel Guide</small></div>
+    </div>
+
+    <div class="toc-group">
+      <div class="toc-group-label">Basics</div>
+      <a href="#overview">1. Overview</a>
+      <a href="#opening">2. Opening the panel</a>
+      <a href="#selecting">3. Selecting reports</a>
+      <a href="#daterange">4. Choosing a date range</a>
+      <a href="#downloading">5. Downloading right now</a>
+      <a href="#dump">6. Bulk historical archive</a>
+    </div>
+    <div class="toc-group">
+      <div class="toc-group-label">Automation</div>
+      <a href="#scheduling">7. Scheduling a download</a>
+      <a href="#schedules-view">8. Viewing all schedules</a>
+      <a href="#email">9. Emailing reports</a>
+      <a href="#emails-view">10. Viewing all scheduled emails</a>
+      <a href="#delete">11. Deleting or changing a task</a>
+    </div>
+    <div class="toc-group">
+      <div class="toc-group-label">Reference</div>
+      <a href="#status">12. Reading the status messages</a>
+      <a href="#files">13. Where your files go</a>
+      <a href="#troubleshooting">14. Troubleshooting</a>
+      <a href="#reference">15. Field reference</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="content">
+
+      <div class="hero">
+        <div class="eyebrow">Portal Data &middot; IDMS Panel</div>
+        <h1>How to use the IDMS report panel</h1>
+        <p>Everything the panel can do — downloading, scheduling, emailing, and managing reports — explained end to end. Written for anyone using it for the first time, and useful as a lookup later.</p>
+      </div>
+
+      <section id="overview">
+        <h2><span class="num">01</span> Overview</h2>
+        <p>The IDMS panel picks any combination of the 30 IDMS reports, a date range, and gets them out of the portal — either immediately, on a repeating schedule, or straight into an email. It always runs unattended once you've asked it to: closing the panel doesn't cancel a schedule or a scheduled email, because both are registered as real Windows Scheduled Tasks.</p>
+        <p>Four things the panel can do, all starting from the same report checklist:</p>
+        <div class="badge-row">
+          <span class="badge">Download now</span>
+          <span class="badge">Schedule a download</span>
+          <span class="badge">Email a report</span>
+          <span class="badge">Schedule an email</span>
+        </div>
+        <p>Downloads and emails both use the exact same reports list, date range, and CREATE DUMP setting — you check what you want once, then decide whether to download it, schedule it, email it, or schedule the email.</p>
+      </section>
+
+      <section id="opening">
+        <h2><span class="num">02</span> Opening the panel</h2>
+        <p>The IDMS panel lives under the <b>PORTAL DATA</b> bar on your desktop. Click the <span class="btnlabel">IDMS ▾</span> dropdown in the top-right of that bar to expand the full report list and controls. Click it again to collapse it.</p>
+        <div class="callout tip">
+          <div class="icon">💡</div>
+          <div class="body"><b>Tip</b><p>The PORTAL DATA bar itself shows live Booking/Docket/Enquiry counts and has its own <span class="btnlabel">RUN NOW</span> button — that's a separate, always-on data refresh and isn't part of the IDMS panel described in this guide.</p></div>
+        </div>
+      </section>
+
+      <section id="selecting">
+        <h2><span class="num">03</span> Selecting reports</h2>
+        <p>Click any report name to check it — <code>[ ]</code> becomes <code>[x]</code>. Reports are listed in two columns, 30 in total. Use <span class="btnlabel">ALL</span> to check every report, <span class="btnlabel">NONE</span> to clear the selection.</p>
+        <p>Hover any report name to see a tooltip with its label and, once you've run <span class="btnlabel">REFRESH AVAILABILITY</span> at least once, the actual date range that report has data for in the portal.</p>
+        <div class="callout tip">
+          <div class="icon">💡</div>
+          <div class="body"><b>Tip</b><p>Your selection is shared across DOWNLOAD, SCHEDULE TASK, and EMAIL. Check reports once, then choose what to do with them.</p></div>
+        </div>
+      </section>
+
+      <section id="daterange">
+        <h2><span class="num">04</span> Choosing a date range</h2>
+        <p>The <b>DATE RANGE</b> row controls what window of data each selected report pulls, for both immediate downloads and schedules.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Option</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><b>AS-IS</b></td><td>Each report's own default view, dates left untouched. Fastest option — downloads immediately with whatever the portal shows by default.</td></tr>
+              <tr><td><b>TODAY</b></td><td>Sets every date-driven report's range to just today.</td></tr>
+              <tr><td><b>THIS MONTH</b></td><td>1st of the current month through today.</td></tr>
+              <tr><td><b>LAST MONTH</b></td><td>1st through the last day of last calendar month.</td></tr>
+              <tr><td><b>LAST 2 MONTHS</b></td><td>1st of the month two months ago through today.</td></tr>
+              <tr><td><b>CUSTOM…</b></td><td>Opens a small text file in Notepad with <code class="kv">FROM=</code> and <code class="kv">TO=</code> (format <code>YYYY-MM-DD</code>). Edit, save, close — the preview line updates automatically next time you look at the panel.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>A live preview line under the pills always shows exactly what range will be used, e.g. <em>"Will use 2026-07-01 → 2026-07-27"</em>.</p>
+        <div class="callout tip">
+          <div class="icon">💡</div>
+          <div class="body"><b>Reports without a date filter</b><p>Some reports (Stock Report, Invoice Pending, Priority Booking, and a few others) have no date-range filter at all — the date range pills are simply ignored for those and they always download their current full view.</p></div>
+        </div>
+      </section>
+
+      <section id="downloading">
+        <h2><span class="num">05</span> Downloading right now</h2>
+        <ol class="steps">
+          <li><b>Check the report(s) you want.</b> The status line under the report list confirms how many are selected.</li>
+          <li><b>Pick a date range</b> (or leave it on AS-IS).</li>
+          <li><b>Click <span class="btnlabel">DOWNLOAD</span>.</b> The panel logs in and downloads each selected report in turn, showing live progress (<em>"Downloading 2/5: Docket Report..."</em>).</li>
+        </ol>
+        <p>When it finishes, the status line turns green with a result summary, or red with a clear reason if something failed. Click <span class="btnlabel">OPEN FOLDER</span> any time to jump straight to where the files land.</p>
+        <div class="callout tip">
+          <div class="icon">💡</div>
+          <div class="body"><b>Filenames always overwrite</b><p>Every save replaces the existing file of the same name — a report never accumulates <code>(1)</code>, <code>(2)</code> copies. Downloading the same report twice in a row just refreshes it in place.</p></div>
+        </div>
+      </section>
+
+      <section id="dump">
+        <h2><span class="num">06</span> Bulk historical archive (CREATE DUMP)</h2>
+        <p>CREATE DUMP is a different mode for date-driven reports: instead of one date range, it walks month by month from a start month through the current month and downloads each month separately, then optionally merges them.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Control</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><b>BULK DUMP / CREATE DUMP: ON/OFF</b></td><td>Toggles the mode. When ON, the DATE RANGE pills above are ignored entirely.</td></tr>
+              <tr><td><b>DUMP FROM: <em>month</em></b></td><td>Click to edit the starting month in Notepad (<code class="kv">FROM=YYYY-MM</code>). Defaults to January of the current year.</td></tr>
+              <tr><td><b>COMBINE FILES</b></td><td>Merges every month into a single file per report.</td></tr>
+              <tr><td><b>KEEP SEPARATE</b></td><td>Keeps one file per month, in a subfolder named after the report.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>With CREATE DUMP on, click <span class="btnlabel">DOWNLOAD</span> exactly as normal — it works the same way, it just fetches many months instead of one range.</p>
+        <div class="callout warn">
+          <div class="icon">⚠️</div>
+          <div class="body"><b>Not supported by EMAIL</b><p>You can schedule a CREATE DUMP download, but you cannot email a CREATE DUMP selection — the EMAIL button will refuse and tell you to switch CREATE DUMP off first.</p></div>
+        </div>
+        <div class="callout tip">
+          <div class="icon">💡</div>
+          <div class="body"><b>Automatic fallback</b><p>If a particular month genuinely has no data, the tool automatically substitutes the closest available range instead of failing outright, and writes a plain-text note (<code>0_USED_WIDER_DATE_RANGE.txt</code>) in the output folder listing exactly which reports were substituted and why.</p></div>
+        </div>
+      </section>
+
+      <section id="scheduling">
+        <h2><span class="num">07</span> Scheduling a download</h2>
+        <p>Turns your current report selection into a real, repeating Windows Scheduled Task — it keeps running even if this panel (or Rainmeter itself) is closed.</p>
+
+        <h3>How to create one</h3>
+        <ol class="steps">
+          <li><b>Select your reports</b> (and date range / CREATE DUMP settings) as usual.</li>
+          <li><b>Click <span class="btnlabel">SCHEDULE TASK</span>.</b> A small text file opens in Notepad.</li>
+          <li><b>Fill in the fields</b> (all explained below), then <b>save the file and close Notepad</b>.</li>
+          <li><b>Click <span class="btnlabel">CONFIRM SCHEDULE</span></b> — the button changes label after step 2, and this second click is what actually registers the task. <em>Nothing happens from saving Notepad alone; you must click this.</em></li>
+        </ol>
+        <div class="callout warn">
+          <div class="icon">⚠️</div>
+          <div class="body"><b>Always click CONFIRM</b><p>The button intentionally will not auto-detect that you've finished editing — closing Notepad by itself does nothing. This is deliberate: registering a schedule is permanent enough that it needs an explicit second click, not a guess.</p></div>
+        </div>
+
+        <h3>The draft file, field by field</h3>
+        <div class="kv-block"><pre><span class="c">; --- IDMS SCHEDULE TASK -----------------------------------------</span>
+<span class="k">NAME</span>=<span class="v"></span>              <span class="c">optional — your own label; blank = auto-named from reports/repeat</span>
+<span class="k">TIME</span>=<span class="v">09:00</span>         <span class="c">24-hour HH:MM</span>
+<span class="k">DATE</span>=<span class="v"></span>              <span class="c">optional override, YYYY-MM-DD; blank = next occurrence of TIME=</span>
+<span class="k">PATH</span>=<span class="v"></span>              <span class="c">optional custom save folder; blank = normal Downloads folder</span>
+<span class="k">REPEAT</span>=<span class="v">once</span>        <span class="c">once / daily / weekly / monthly / interval</span>
+<span class="k">DAYS</span>=<span class="v"></span>              <span class="c">weekly only — e.g. Mon,Wed,Fri</span>
+<span class="k">EVERY</span>=<span class="v"></span>             <span class="c">interval only — minutes between runs (5 minimum)</span>
+<span class="k">MONTHS</span>=<span class="v">1</span>            <span class="c">monthly only — every how many months</span>
+<span class="k">DATEFOLDER</span>=<span class="v">off</span>      <span class="c">off / today / yesterday</span></pre></div>
+
+        <h4>REPEAT modes explained</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>REPEAT=</th><th>Behaviour</th><th>Needs</th></tr></thead>
+            <tbody>
+              <tr><td><code>once</code></td><td>Fires one time at TIME= (or DATE=+TIME=), then removes itself automatically after a successful run.</td><td>—</td></tr>
+              <tr><td><code>daily</code></td><td>Fires every day at TIME=.</td><td>—</td></tr>
+              <tr><td><code>weekly</code></td><td>Fires only on the days listed, at TIME=.</td><td><code>DAYS=Mon,Wed,Fri</code></td></tr>
+              <tr><td><code>monthly</code></td><td>Fires every N months, on the day of month from DATE= (or today's day-of-month if DATE= is blank), at TIME=.</td><td><code>MONTHS=</code></td></tr>
+              <tr><td><code>interval</code></td><td>Fires repeatedly all day, every N minutes, starting at TIME=.</td><td><code>EVERY=</code> (5+ minutes)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><b>DATE=</b> works with every mode, not just monthly — set it whenever you want an exact one-off date instead of "the next time TIME= comes around." For <code>monthly</code>, it doubles as the day-of-month the schedule repeats on (day 29–31 simply skips shorter months, same as picking it in Windows' own Task Scheduler).</p>
+
+        <h4>DATEFOLDER — dated subfolders</h4>
+        <p>Only meaningful when PATH= is set. When on, each run creates a dated subfolder inside PATH and saves into that instead of directly into PATH:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>DATEFOLDER=</th><th>Example, run on 27-Jul-2026</th></tr></thead>
+            <tbody>
+              <tr><td><code>off</code> <span style="color:var(--muted)">(default)</span></td><td><code>PATH\</code> — no subfolder</td></tr>
+              <tr><td><code>today</code></td><td><code>PATH\27-07-2026\</code></td></tr>
+              <tr><td><code>yesterday</code></td><td><code>PATH\26-07-2026\</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The date is worked out fresh every time the schedule actually fires — a <code>daily</code> or <code>weekly</code> schedule with DATEFOLDER=today automatically gets a brand-new dated folder each time, with no extra setup.</p>
+
+        <div class="callout ok">
+          <div class="icon">✔️</div>
+          <div class="body"><b>Multiple reports, one schedule</b><p>Every report you had checked when you clicked SCHEDULE TASK is saved into that one schedule, and they all land in the exact same PATH (and the same dated subfolder, if DATEFOLDER is on) every time it runs.</p></div>
+        </div>
+        <div class="callout tip">
+          <div class="icon">💡</div>
+          <div class="body"><b>Many independent schedules</b><p>There's no limit on how many schedules you create. Each one is fully independent — different reports, different times, different paths — so you can have a daily 9am download of one report and a weekly Friday download of five others running side by side.</p></div>
+        </div>
+      </section>
+
+      <section id="schedules-view">
+        <h2><span class="num">08</span> Viewing all schedules</h2>
+        <p>Click <span class="btnlabel">SCHEDULES</span> to open a plain-text summary of every scheduled download you've created — reports, save path, repeat pattern, next run, and the result of its last run.</p>
+        <div class="kv-block"><pre><span class="c">==============================================================
+1. IDMS Scheduled - Booking Report - Daily 0900 (a1b2c3)
+==============================================================
+   Repeats:   Daily
+   Reports:   booking
+   Save to:   C:\Reports\Daily  (dated subfolder created each run - today's date)
+   Next run:  07/28/2026 09:00:00
+   Last run:  07/27/2026 09:00:04  (succeeded)</pre></div>
+        <p>These are real Windows Scheduled Tasks, so you can also see (and enable/disable/delete) them directly in <b>Task Scheduler → Task Scheduler Library → IDMS Scheduled</b> — though it's usually easier to use the panel's own <a href="#delete">DELETE TASK</a> button instead.</p>
+      </section>
+
+      <section id="email">
+        <h2><span class="num">09</span> Emailing reports</h2>
+        <p>Sends your selected reports as attachments via Outlook — either right away, or on the same kind of repeating schedule as downloads.</p>
+        <div class="callout warn">
+          <div class="icon">⚠️</div>
+          <div class="body"><b>EMAIL sends what's already downloaded</b><p>It does not trigger a fresh download of its own — it attaches whatever file is currently sitting in the Downloads folder for each checked report. Click DOWNLOAD first (or have a schedule already deliver the files) before emailing.</p></div>
+        </div>
+
+        <h3>How to send</h3>
+        <ol class="steps">
+          <li><b>Select your reports</b> (make sure each one has already been downloaded at least once).</li>
+          <li><b>Click <span class="btnlabel">EMAIL</span>.</b> A small text file opens in Notepad.</li>
+          <li><b>Fill in TO/SUBJECT/BODY and TIME</b> (see below), save, close Notepad.</li>
+          <li><b>Click <span class="btnlabel">CONFIRM EMAIL</span></b> — same two-step reasoning as SCHEDULE TASK: nothing sends until this explicit click.</li>
+        </ol>
+
+        <div class="kv-block"><pre><span class="c">; --- IDMS SEND EMAIL -----------------------------------------</span>
+<span class="k">TO</span>=<span class="v"></span>                <span class="c">required — one or more addresses, comma-separated</span>
+<span class="k">CC</span>=<span class="v"></span>                <span class="c">optional, comma-separated</span>
+<span class="k">SUBJECT</span>=<span class="v"></span>           <span class="c">optional; blank = "IDMS DATA" — used exactly as typed, nothing auto-generated</span>
+<span class="k">BODY</span>=<span class="v"></span>              <span class="c">optional message; use | to start a new paragraph</span>
+<span class="k">TIME</span>=<span class="v">NOW</span>           <span class="c">NOW = send immediately, once. Otherwise 24-hour HH:MM to schedule</span>
+<span class="k">DATE</span>=<span class="v"></span>              <span class="c">optional (ignored when TIME=NOW) — same as SCHEDULE TASK's DATE=</span>
+<span class="k">REPEAT</span>=<span class="v">once</span>        <span class="c">ignored when TIME=NOW; otherwise once/daily/weekly/monthly/interval</span>
+<span class="k">DAYS</span>=<span class="v"></span>
+<span class="k">EVERY</span>=<span class="v"></span>
+<span class="k">MONTHS</span>=<span class="v">1</span></pre></div>
+        <p><b>TIME=NOW</b> is the important switch: leave it as <code>NOW</code> for an immediate one-time send with no Windows Scheduled Task involved at all. Set a real <code>HH:MM</code> and a <code>REPEAT=</code> to schedule it instead — the exact same vocabulary as <a href="#scheduling">scheduling a download</a> (daily/weekly/monthly/interval, DAYS=/EVERY=/MONTHS=, and a DATE= override) applies here too.</p>
+
+        <h4>What actually happens when it sends</h4>
+        <ol>
+          <li>Outlook opens automatically (reusing it if it's already running, or launching and later closing it if it wasn't).</li>
+          <li>A message is composed with your subject/body, the A.M. Motors letterhead, and every attached report file that could be found.</li>
+          <li>It's sent, and the panel waits to confirm it actually left the Outbox before reporting success.</li>
+        </ol>
+        <div class="callout tip">
+          <div class="icon">💡</div>
+          <div class="body"><b>Multiple attachments, one email</b><p>Every report checked when you clicked EMAIL goes into that one message as separate attachments — send five reports and the recipient gets one email with five files, not five emails.</p></div>
+        </div>
+        <div class="callout tip">
+          <div class="icon">💡</div>
+          <div class="body"><b>A report with no downloaded file yet</b><p>If one of your checked reports was never actually downloaded, it's skipped rather than failing the whole send — the result message tells you exactly which ones were skipped and why.</p></div>
+        </div>
+      </section>
+
+      <section id="emails-view">
+        <h2><span class="num">10</span> Viewing all scheduled emails</h2>
+        <p>Click <span class="btnlabel">EMAILS</span> for the same kind of summary as SCHEDULES, but for email deliveries — subject, recipients, reports, repeat pattern, next send, and last result. These live under <b>Task Scheduler → Task Scheduler Library → IDMS Email Scheduled</b> — a separate folder from download schedules, so the two never get mixed up.</p>
+      </section>
+
+      <section id="delete">
+        <h2><span class="num">11</span> Deleting or changing a schedule/email</h2>
+        <ol class="steps">
+          <li><b>Open SCHEDULES or EMAILS</b> and copy the exact task name of the one you want to remove — e.g. <code>IDMS Scheduled - Booking Report - Daily 0900 (a1b2c3)</code>.</li>
+          <li><b>Click <span class="btnlabel">DELETE TASK</span></b>. A small text file opens.</li>
+          <li><b>Paste the name into TASKNAME=</b>, and set <code>TYPE=schedule</code> or <code>TYPE=email</code> depending on which list it came from.</li>
+          <li><b>Save, close Notepad, then click <span class="btnlabel">CONFIRM DELETE</span></b>.</li>
+        </ol>
+        <div class="kv-block"><pre><span class="k">TASKNAME</span>=<span class="v">IDMS Scheduled - Booking Report - Daily 0900 (a1b2c3)</span>
+<span class="k">TYPE</span>=<span class="v">schedule</span>       <span class="c">schedule = SCHEDULES list, email = EMAILS list</span></pre></div>
+        <p>This permanently unregisters the real Windows Scheduled Task and deletes its saved settings — it can't be undone.</p>
+        <div class="callout warn">
+          <div class="icon">⚠️</div>
+          <div class="body"><b>To change something instead of removing it</b><p>There's no in-place edit — delete the old one, then create a fresh one with SCHEDULE TASK or EMAIL using the new time, reports, path, or recipients. This keeps every schedule's settings simple, frozen text files rather than something that can drift out of sync.</p></div>
+        </div>
+      </section>
+
+      <section id="status">
+        <h2><span class="num">12</span> Reading the status messages</h2>
+        <p>Every row has its own status line underneath it, colour-coded the same way throughout the panel:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Colour</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td style="color:var(--muted); font-weight:700;">Grey / dim</td><td>Idle — nothing running, just telling you what will happen if you click the button.</td></tr>
+              <tr><td style="color:var(--blue); font-weight:700;">Orange / accent</td><td>In progress — logging in, downloading, sending, or registering.</td></tr>
+              <tr><td style="color:var(--ok); font-weight:700;">Green</td><td>Succeeded.</td></tr>
+              <tr><td style="color:var(--red); font-weight:700;">Amber-orange (email only)</td><td>Partially succeeded — some reports were skipped because they weren't downloaded yet; the message explains which.</td></tr>
+              <tr><td style="color:var(--red); font-weight:700;">Red</td><td>Failed — the message explains why.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="files">
+        <h2><span class="num">13</span> Where your files go</h2>
+        <ul>
+          <li><b>No custom PATH=</b> — everything saves to the normal Downloads folder (the same place <span class="btnlabel">OPEN FOLDER</span> takes you).</li>
+          <li><b>PATH= set, DATEFOLDER=off</b> — saves straight into that folder.</li>
+          <li><b>PATH= set, DATEFOLDER=today/yesterday</b> — saves into a <code>DD-MM-YYYY</code> subfolder inside that folder, created automatically.</li>
+          <li><b>CREATE DUMP + KEEP SEPARATE</b> — one subfolder per report, one file per month inside it.</li>
+        </ul>
+        <p>Filenames are always the same for the same report and always overwrite the previous version — nothing ever piles up as numbered duplicates.</p>
+      </section>
+
+      <section id="troubleshooting">
+        <h2><span class="num">14</span> Troubleshooting</h2>
+
+        <h4>"login did not succeed — password may have changed or portal unreachable"</h4>
+        <p>The portal login failed. This is retried automatically a few times before this message ever appears, so it usually means either the saved password is out of date or the portal itself was briefly unavailable. Click <span class="btnlabel">UPDATE PASSWORD</span> to check/update the saved credentials, or simply try again in a minute if the portal was just slow.</p>
+
+        <h4>"another IDMS download is already running — try again shortly"</h4>
+        <p>Two downloads tried to run at the same moment (for example a schedule fired while you clicked DOWNLOAD yourself). This is a safety lock, not an error with your data — nothing was corrupted, just wait a few seconds and try again.</p>
+
+        <h4>"no downloaded files found for: … — click DOWNLOAD first"</h4>
+        <p>You tried to email reports that have never actually been downloaded. Click DOWNLOAD for them first, then EMAIL again.</p>
+
+        <h4>"PATH is not writable: …"</h4>
+        <p>The custom folder you typed either doesn't exist and couldn't be created, or you don't have permission to write to it. Try a folder under your own Documents or Desktop.</p>
+
+        <h4>"a task named '…' already exists"</h4>
+        <p>Extremely rare — every generated task name includes a unique id. If you ever see this, wait a second and re-create the schedule (a fresh id will be generated).</p>
+
+        <h4>"no schedule task named '…' found" (DELETE TASK)</h4>
+        <p>The TASKNAME= didn't match anything exactly. Re-copy it from the SCHEDULES or EMAILS summary — it must match character-for-character, including the <code>(xxxxxx)</code> id at the end.</p>
+
+        <h4>Notepad opened but nothing seems to happen after I save</h4>
+        <p>This is expected — saving the file alone never triggers anything. You always need the second click: <span class="btnlabel">CONFIRM SCHEDULE</span>, <span class="btnlabel">CONFIRM EMAIL</span>, or <span class="btnlabel">CONFIRM DELETE</span>, whichever button you started with.</p>
+      </section>
+
+      <section id="reference">
+        <h2><span class="num">15</span> Field reference</h2>
+        <p>Every field across both the schedule and email draft files, in one place.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Field</th><th>Used by</th><th>Default</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><code>NAME=</code></td><td>Schedule</td><td>blank</td><td>Optional label; blank = auto-named</td></tr>
+              <tr><td><code>TO=</code></td><td>Email</td><td>blank</td><td>Required, comma-separated</td></tr>
+              <tr><td><code>CC=</code></td><td>Email</td><td>blank</td><td>Optional, comma-separated</td></tr>
+              <tr><td><code>SUBJECT=</code></td><td>Email</td><td><code>IDMS DATA</code></td><td>Used exactly as typed</td></tr>
+              <tr><td><code>BODY=</code></td><td>Email</td><td>plain default line</td><td><code>|</code> starts a new paragraph</td></tr>
+              <tr><td><code>TIME=</code></td><td>Both</td><td><code>09:00</code> / <code>NOW</code></td><td>24-hour HH:MM, or NOW for email</td></tr>
+              <tr><td><code>DATE=</code></td><td>Both</td><td>blank</td><td>YYYY-MM-DD override; sets day-of-month for monthly</td></tr>
+              <tr><td><code>PATH=</code></td><td>Schedule</td><td>blank</td><td>Custom save folder</td></tr>
+              <tr><td><code>REPEAT=</code></td><td>Both</td><td><code>once</code></td><td>once / daily / weekly / monthly / interval</td></tr>
+              <tr><td><code>DAYS=</code></td><td>Both</td><td>blank</td><td>Weekly only, e.g. <code>Mon,Wed,Fri</code></td></tr>
+              <tr><td><code>EVERY=</code></td><td>Both</td><td>blank</td><td>Interval only, minutes (5 min minimum)</td></tr>
+              <tr><td><code>MONTHS=</code></td><td>Both</td><td><code>1</code></td><td>Monthly only, every N months</td></tr>
+              <tr><td><code>DATEFOLDER=</code></td><td>Schedule</td><td><code>off</code></td><td>off / today / yesterday</td></tr>
+              <tr><td><code>TASKNAME=</code></td><td>Delete</td><td>blank</td><td>Exact name from SCHEDULES/EMAILS</td></tr>
+              <tr><td><code>TYPE=</code></td><td>Delete</td><td><code>schedule</code></td><td>schedule / email</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <a class="top-link" href="#overview">↑ Back to top</a>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var sections = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+  function onScroll(){
+    var pos = window.scrollY + 120;
+    var activeIdx = 0;
+    for (var i = 0; i < sections.length; i++){
+      if (sections[i] && sections[i].offsetTop <= pos) activeIdx = i;
+    }
+    links.forEach(function(a, i){ a.classList.toggle('active', i === activeIdx); });
+  }
+  document.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+
+</body>
+</html>
